@@ -1,0 +1,72 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This Notebook has
+
+```{r warning=FALSE,message=FALSE}
+library(tidyverse)
+```
+
+Individual annovar output files can be read using `read_tsv`. We suggest reading an example file to test out your filtering steps before applying to all files.
+
+
+```{r}
+## find all annovar output files
+anno_files <- list.files(".",pattern="_multianno.txt",recursive = TRUE)
+test <- anno_files[i]
+#genes_info <- read_tsv("....")
+#genes_of_interest <- ....
+
+```
+
+
+Once we have decided on filtering criteria, these can be implemented using the `filter` function. The resulting table can be written out as a new annovar-format table. The code chunk belows implments the set of filters
+
+- e.g. filter to genes belonging to pathways of interest
+- keep only exonic/splicing genes
+- less than 0.01 frequency in EXaC
+
+```{r warning=FALSE}
+
+for(i in 1:length(anno_files)){
+  
+  annov <- read_tsv(anno_files[i],show_col_types = FALSE)
+  message("Filtering file: ", anno_files[i])
+  new_file <- gsub("multianno","multianno_forMAF",anno_files[i])
+
+  annov %>% 
+    filter(Func.refGene == c("exonic","splicing")) %>%
+#    filter(Gene.refGene %in% genes_of_interest) %>% 
+    filter(ExAC_ALL < 0.01 | is.na(ExAC_ALL)) %>%
+    write_tsv(new_file)
+  
+}
+
+
+```
+
+Once all the files have been filtered, the `maftools` package can read the filtered files and produce a `maf` file for further plotting and analysis.
+
+```{r eval=FALSE}
+library(maftools)
+manno_files <- list.files(".",pattern="_forMAF.txt",full.names = TRUE)
+
+for(i in 1:length(manno_files)){
+  out <- gsub("_multianno_forMAF.txt",".maf",manno_files[i])
+  tmp <- annovarToMaf(manno_files[i], refBuild="hg38")
+  write.table(tmp, file=out, sep="\t",row.names=FALSE,quote=FALSE)
+  
+}
+
+```
+
+```{r eval=FALSE}
+library(maftools)
+big_maf <- merge_mafs(list.files(".",pattern = ".maf",full.names = TRUE))
+
+plotmafSummary(big_maf,showBarcodes = TRUE,textSize = 0.6,top=20)
+
+
+```
