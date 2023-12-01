@@ -15,7 +15,8 @@ Individual annovar output files can be read using `read_tsv`. We suggest reading
 ```{r}
 ## find all annovar output files
 anno_files <- list.files(".",pattern="_multianno.txt",recursive = TRUE)
-test <- anno_files[i]
+test <- read_tsv(anno_files[i])
+test
 #genes_info <- read_tsv("....")
 #genes_of_interest <- ....
 
