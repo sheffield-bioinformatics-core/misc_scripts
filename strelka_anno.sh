@@ -149,11 +149,118 @@ fi
 mkdir -p $output_dir
 
 
+## Create variables to hold annovar operation and protocol script
+annovar_op=""
+annovar_pr=""
+
+
+### Checking to see if all the databases are present
+
+if [ ! -e  "${annovar_db}/${genome_version}_refGene.txt" ]
+   then
+    echo "No refGene annotation found in ${annovar_db}. Please check that your annovar database and genome version are correct"
+    echo "Value of annovar database (-d) was: ${annovar_db}"
+    echo "Value of genome version (-v) was ${genome_version}"
+
+else
+     echo "Found refGene annotations in ${annovar_db}/${genome_version}_refGene.txt. This will be used for annovar annotation"
+     annovar_pr="refGene" 
+     annovar_op="gx"		
+fi
+
+if [ ! -e  "${annovar_db}/${genome_version}_cytoBand.txt" ]
+   then
+    echo "No cytoband annotation found in ${annovar_db}. Please check that your annovar database and genome version are correct"
+    echo "Value of annovar database (-d) was: ${annovar_db}"
+    echo "Value of genome version (-v) was ${genome_version}"
+
+else
+     echo "Found cytoBand annotations in ${annovar_db}/${genome_version}_cyotBand.txt. This will be used for annovar annotation"
+     annovar_pr="${annovar_pr},cytoband"
+     annovar_op="${annovar_op},r"		
+fi
+
+
+if [ ! -e  "${annovar_db}/${genome_version}_dbnsfp30a.txt" ]
+   then
+    echo "No dbnsfp30a annotation found in ${annovar_db}. Please check that your annovar database and genome version are correct"
+    echo "Value of annovar database (-d) was: ${annovar_db}"
+    echo "Value of genome version (-v) was ${genome_version}"
+
+else
+     echo "Found dbnsfp30a annotations in ${annovar_db}/${genome_version}_dbnsfp30a.txt. This will be used for annovar annotation"
+     annovar_pr="${annovar_pr},dbnsfp30a"
+     annovar_op="${annovar_op},f"		
+fi
+
+
+##Could check if other clinvar annotations are present, not just this specific version
+
+if [ ! -e  "${annovar_db}/${genome_version}_clinvar_20221231.txt" ]
+   then
+    echo "No clinvar annotation found in ${annovar_db}. Please check that your annovar database and genome version are correct"
+    echo "Value of annovar database (-d) was: ${annovar_db}"
+    echo "Value of genome version (-v) was ${genome_version}"
+
+else
+     echo "Found clinvar annotations in ${annovar_db}/${genome_version}_clinvar_20221231.txt. This will be used for annovar annotation"
+     annovar_pr="${annovar_pr},clinvar_20221231"
+     annovar_op="${annovar_op},f"		
+fi
+
+
+if [ ! -e  "${annovar_db}/${genome_version}_nci60.txt" ]
+   then
+    echo "No NCI60 annotation found in ${annovar_db}. Please check that your annovar database and genome version are correct"
+    echo "Value of annovar database (-d) was: ${annovar_db}"
+    echo "Value of genome version (-v) was ${genome_version}"
+
+else
+     echo "Found NCI60 annotations in ${annovar_db}/${genome_version}_nci60.txt. This will be used for annovar annotation"
+     annovar_pr="${annovar_pr},nci60"
+     annovar_op="${annovar_op},f"		
+fi
+
+if [ ! -e  "${annovar_db}/${genome_version}_cosmic70.txt" ]
+   then
+    echo "No COSMIC annotation found in ${annovar_db}. Please check that your annovar database and genome version are correct"
+    echo "Value of annovar database (-d) was: ${annovar_db}"
+    echo "Value of genome version (-v) was ${genome_version}"
+
+else
+     echo "Found COSMIC annotations in ${annovar_db}/${genome_version}_cosmic70.txt. This will be used for annovar annotation"
+     annovar_pr="${annovar_pr},cosmic70"
+     annovar_op="${annovar_op},f"		
+fi
+
+if [ ! -e  "${annovar_db}/${genome_version}_gnomad_exome.txt" ]
+   then
+    echo "No GNOMAD annotation found in ${annovar_db}. Please check that your annovar database and genome version are correct"
+    echo "Value of annovar database (-d) was: ${annovar_db}"
+    echo "Value of genome version (-v) was ${genome_version}"
+
+else
+     echo "Found GNOMAD annotations in ${annovar_db}/${genome_version}_gnomad_exome.txt. This will be used for annovar annotation"
+     annovar_pr="${annovar_pr},gnomad_exome"
+     annovar_op="${annovar_op},f"		
+fi
+
+
+
+
+echo "Current value of annovar protocol is ${annovar_pr}"
+echo "Current value of annovar operation is ${annovar_op}"
+
+
+
+
 #For loop
 
 for sample in $(cut -d',' -f"$id_col" ${sample_sheet} | tail -n +2)
 do
-echo "Working on ${sample}."
+echo "Working on ${sample}"
+echo ""
+echo ""
 
 
 mkdir -p $output_dir/$sample
@@ -185,11 +292,18 @@ echo "Filtering mutect2 output for $sample for PASS if applicable"
 fi
 
 
-echo "   Annotating with annovar"
+echo ".....Converting vcf to annovar"
 ${annovar_dir}/convert2annovar.pl -format vcf4 $pass_vcf > ${pass_vcf}.avinput
 
-${annovar_dir}/annotate_variation.pl -filter -infoasscore -otherinfo -dbtype gnomad_exome -buildver ${genome_version} ${pass_vcf}.avinput ${annovar_db}
-  
-${annovar_dir}/table_annovar.pl ${pass_vcf}.avinput  ${annovar_db} -buildver ${genome_version} -remove -protocol refGene,cytoband,dbnsfp30a,clinvar_20221231,nci60,cosmic70,gnomad_exome -operation gx,r,f,f,f,f,f -nastring NA
+echo "..........Annotating with annovar"
+
+##${annovar_dir}/annotate_variation.pl -filter -infoasscore -otherinfo -dbtype gnomad_exome -buildver ${genome_version} ${pass_vcf}.avinput ${annovar_db} &> /dev/null
+ 
+echo "Using the annovar command: ${annovar_dir}/table_annovar.pl ${pass_vcf}.avinput  ${annovar_db} -buildver ${genome_version} -remove -protocol ${annovar_pr} -operation ${annovar_op} -nastring NA"
+
+ 
+${annovar_dir}/table_annovar.pl ${pass_vcf}.avinput  ${annovar_db} -buildver ${genome_version} -remove -protocol ${annovar_pr} -operation ${annovar_op} -nastring NA &> /dev/null
+
+
 done
 
