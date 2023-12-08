@@ -50,7 +50,7 @@ while getopts ":hs:a:o:r:i:m:d:v:" option; do
       i) id_col=${OPTARG};;
       m) 
 	 caller=${OPTARG}
-	 ((caller == strelka || caller = mutect2)) || Help 
+	 ((caller == strelka || caller == mutect2 || caller == intersect)) || Help 
 	  ;;
       d) annovar_db=${OPTARG};;
       v) genome_version=${OPTARG};;
@@ -139,10 +139,14 @@ elif [ $caller == "mutect2" ]; then
    then
       echo "Found mutect2 data."
   fi
+  
    
-else 
-	echo "No valid method specified with -m argument. Must be strelka or mutect2 but found $caller"
-exit 1
+elif [ $caller == "intersect" ]; then
+ 
+  if [ -d "${input_dir}/variant_calling/mutect2" & -d "${input_dir}/variant_calling/strelka"  ]
+   then
+      echo "Found both mutect2 and strelka data. Will proceed with merge"
+  fi
 
 fi
 
@@ -288,8 +292,34 @@ echo "Filtering mutect2 output for $sample for PASS if applicable"
 	pass_vcf=${output_dir}/${sample}/${sample}.mutect2.variants.PASS.vcf.gz
 	bcftools view  -Oz -f PASS ${input_vcf} > ${pass_vcf}
 	bcftools index ${pass_vcf}
+	
+
+elif [ $caller == "intersect" ]; then
+
+echo "Filtering mutect2 output for $sample for PASS if applicable"
+
+	input_vcf=${input_dir}/variant_calling/mutect2/${sample}/${sample}.mutect2.filtered.vcf.gz
+	pass_vcf_m=${output_dir}/${sample}/${sample}.mutect2.variants.PASS.vcf.gz
+	bcftools view  -Oz -f PASS ${input_vcf} > ${pass_vcf_m}
+	bcftools index ${pass_vcf_m}
+
+echo "Filtering strelka output for $sample for PASS if applicable"
+
+	input_vcf=${input_dir}/variant_calling/strelka/${sample}/${sample}.strelka.variants.vcf.gz
+	pass_vcf_s=${output_dir}/${sample}/${sample}.strelka.variants.PASS.vcf.gz
+	bcftools view  -Oz -f PASS -i '%QUAL>50' ${input_vcf} > ${pass_vcf_s}
+	bcftools index ${pass_vcf_s}
+
+echo "Merging filtered strelka and mutect2 variants"
+
+pass_vcf=${output_dir}/${sample}/${sample}.INTERSECT.variants.PASS.vcf
+	
+bcftools isec ${pass_vcf_m} ${pass_vcf_s} -p ${output_dir}/${sample}/TMP_MERGE
+mv ${output_dir}/${sample}/TMP_MERGE/0002.vcf ${pass_vcf}
 
 fi
+
+
 
 
 echo ".....Converting vcf to annovar"
