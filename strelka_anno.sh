@@ -143,7 +143,7 @@ elif [ $caller == "mutect2" ]; then
    
 elif [ $caller == "intersect" ]; then
  
-  if [ -d "${input_dir}/variant_calling/mutect2" & -d "${input_dir}/variant_calling/strelka"  ]
+  if [ -d "${input_dir}/variant_calling/mutect2"] && -[d "${input_dir}/variant_calling/strelka"  ]
    then
       echo "Found both mutect2 and strelka data. Will proceed with merge"
   fi
@@ -249,6 +249,17 @@ else
      annovar_op="${annovar_op},f"		
 fi
 
+if [ ! -e  "${annovar_db}/${genome_version}_exac03.txt" ]
+   then
+    echo "No exac annotation found in ${annovar_db}. Please check that your annovar database and genome version are correct"
+    echo "Value of annovar database (-d) was: ${annovar_db}"
+    echo "Value of genome version (-v) was ${genome_version}"
+
+else
+     echo "Found exac annotations in ${annovar_db}/${genome_version}_exac03.txt. This will be used for annovar annotation"
+     annovar_pr="${annovar_pr},exac03"
+     annovar_op="${annovar_op},f"		
+fi
 
 
 
