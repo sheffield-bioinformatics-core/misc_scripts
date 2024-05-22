@@ -17,7 +17,7 @@ Help()
    echo "options:"
    echo "a     Set annovar directory - default = annovar/"
    echo "s     Set sampleSheet.csv this must be a csv file (same as to nextflow input) and must have your samplenames in the 1st column"
-   echo "o     Set output directory - default = strelka_anno/"
+   echo "o     Set output directory - default = filtered_annotated/"
    echo "r     Set directory for nextflows results file - default results/"
    echo "h     Print this Help."
    echo "m    The variant calling method to filter and annotate; strelka or mutect2"
@@ -30,7 +30,7 @@ Help()
 # script defaults
 
 annovar_dir=$PWD/annovar
-output_dir=$PWD/strelka_anno
+output_dir=$PWD/filtered_annotated
 input_dir=$PWD/results
 annovar_db=${annovar_dir}/humandb
 id_col=1
@@ -48,9 +48,9 @@ while getopts ":hs:a:o:r:i:m:d:v:" option; do
       o) output_dir=${OPTARG};;
       r) input_dir=${OPTARG};;
       i) id_col=${OPTARG};;
-      m) 
+      m)
 	 caller=${OPTARG}
-	 ((caller == strelka || caller == mutect2 || caller == intersect)) || Help 
+	 ((caller == strelka || caller == mutect2 || caller == intersect)) || Help
 	  ;;
       d) annovar_db=${OPTARG};;
       v) genome_version=${OPTARG};;
@@ -89,9 +89,9 @@ else
 fi
 
 #Check for annovar
-if [ -d "${annovar_dir}" ] 
+if [ -d "${annovar_dir}" ]
  then
-    echo "Found "${annovar_dir}"." 
+    echo "Found "${annovar_dir}"."
  else
     echo "Error: Can not find annovar at ${annovar_dir}"
     echo "Use -a to set annovar dir."
@@ -99,9 +99,9 @@ if [ -d "${annovar_dir}" ]
 fi
 
 #Check for annovar database
-if [ -d "${annovar_db}" ] 
+if [ -d "${annovar_db}" ]
  then
-    echo "Found "${annovar_db}"." 
+    echo "Found "${annovar_db}"."
  else
     echo "Error: Can not find annovar database at ${annovar_db}"
     echo "Use -d to set annovar database directory."
@@ -132,18 +132,23 @@ if [[ $caller == "strelka" ]]; then
    then
       echo "Found strelka data."
   fi
-  
+
 elif [ $caller == "mutect2" ]; then
 
   if [ -d "${input_dir}/variant_calling/mutect2" ]
    then
       echo "Found mutect2 data."
   fi
-  
-   
+
+
 elif [ $caller == "intersect" ]; then
+<<<<<<< HEAD
  
   if [ -d "${input_dir}/variant_calling/mutect2"] && -[d "${input_dir}/variant_calling/strelka"  ]
+=======
+
+  if [ -d "${input_dir}/variant_calling/mutect2" & -d "${input_dir}/variant_calling/strelka"  ]
+>>>>>>> ade374df25cc123247722ae51d5a31446724bee6
    then
       echo "Found both mutect2 and strelka data. Will proceed with merge"
   fi
@@ -168,8 +173,8 @@ if [ ! -e  "${annovar_db}/${genome_version}_refGene.txt" ]
 
 else
      echo "Found refGene annotations in ${annovar_db}/${genome_version}_refGene.txt. This will be used for annovar annotation"
-     annovar_pr="refGene" 
-     annovar_op="gx"		
+     annovar_pr="refGene"
+     annovar_op="gx"
 fi
 
 if [ ! -e  "${annovar_db}/${genome_version}_cytoBand.txt" ]
@@ -181,7 +186,7 @@ if [ ! -e  "${annovar_db}/${genome_version}_cytoBand.txt" ]
 else
      echo "Found cytoBand annotations in ${annovar_db}/${genome_version}_cyotBand.txt. This will be used for annovar annotation"
      annovar_pr="${annovar_pr},cytoband"
-     annovar_op="${annovar_op},r"		
+     annovar_op="${annovar_op},r"
 fi
 
 
@@ -194,7 +199,7 @@ if [ ! -e  "${annovar_db}/${genome_version}_dbnsfp30a.txt" ]
 else
      echo "Found dbnsfp30a annotations in ${annovar_db}/${genome_version}_dbnsfp30a.txt. This will be used for annovar annotation"
      annovar_pr="${annovar_pr},dbnsfp30a"
-     annovar_op="${annovar_op},f"		
+     annovar_op="${annovar_op},f"
 fi
 
 
@@ -209,7 +214,7 @@ if [ ! -e  "${annovar_db}/${genome_version}_clinvar_20221231.txt" ]
 else
      echo "Found clinvar annotations in ${annovar_db}/${genome_version}_clinvar_20221231.txt. This will be used for annovar annotation"
      annovar_pr="${annovar_pr},clinvar_20221231"
-     annovar_op="${annovar_op},f"		
+     annovar_op="${annovar_op},f"
 fi
 
 
@@ -222,7 +227,7 @@ if [ ! -e  "${annovar_db}/${genome_version}_nci60.txt" ]
 else
      echo "Found NCI60 annotations in ${annovar_db}/${genome_version}_nci60.txt. This will be used for annovar annotation"
      annovar_pr="${annovar_pr},nci60"
-     annovar_op="${annovar_op},f"		
+     annovar_op="${annovar_op},f"
 fi
 
 if [ ! -e  "${annovar_db}/${genome_version}_cosmic70.txt" ]
@@ -234,7 +239,7 @@ if [ ! -e  "${annovar_db}/${genome_version}_cosmic70.txt" ]
 else
      echo "Found COSMIC annotations in ${annovar_db}/${genome_version}_cosmic70.txt. This will be used for annovar annotation"
      annovar_pr="${annovar_pr},cosmic70"
-     annovar_op="${annovar_op},f"		
+     annovar_op="${annovar_op},f"
 fi
 
 if [ ! -e  "${annovar_db}/${genome_version}_gnomad_exome.txt" ]
@@ -246,7 +251,7 @@ if [ ! -e  "${annovar_db}/${genome_version}_gnomad_exome.txt" ]
 else
      echo "Found GNOMAD annotations in ${annovar_db}/${genome_version}_gnomad_exome.txt. This will be used for annovar annotation"
      annovar_pr="${annovar_pr},gnomad_exome"
-     annovar_op="${annovar_op},f"		
+     annovar_op="${annovar_op},f"
 fi
 
 if [ ! -e  "${annovar_db}/${genome_version}_exac03.txt" ]
@@ -260,6 +265,7 @@ else
      annovar_pr="${annovar_pr},exac03"
      annovar_op="${annovar_op},f"		
 fi
+
 
 
 
@@ -283,7 +289,7 @@ mkdir -p $output_dir/$sample
 # Strelka filtering
 # Set file paths for each samplename
 
-if [[ $caller == "strelka" ]]; then 
+if [[ $caller == "strelka" ]]; then
 
 echo "Filtering strelka output for $sample for QUAL>50 and PASS if applicable"
 
@@ -303,7 +309,7 @@ echo "Filtering mutect2 output for $sample for PASS if applicable"
 	pass_vcf=${output_dir}/${sample}/${sample}.mutect2.variants.PASS.vcf.gz
 	bcftools view  -Oz -f PASS ${input_vcf} > ${pass_vcf}
 	bcftools index ${pass_vcf}
-	
+
 
 elif [ $caller == "intersect" ]; then
 
@@ -324,7 +330,7 @@ echo "Filtering strelka output for $sample for PASS if applicable"
 echo "Merging filtered strelka and mutect2 variants"
 
 pass_vcf=${output_dir}/${sample}/${sample}.INTERSECT.variants.PASS.vcf
-	
+
 bcftools isec ${pass_vcf_m} ${pass_vcf_s} -p ${output_dir}/${sample}/TMP_MERGE
 mv ${output_dir}/${sample}/TMP_MERGE/0002.vcf ${pass_vcf}
 
@@ -339,12 +345,11 @@ ${annovar_dir}/convert2annovar.pl -format vcf4 $pass_vcf > ${pass_vcf}.avinput
 echo "..........Annotating with annovar"
 
 ##${annovar_dir}/annotate_variation.pl -filter -infoasscore -otherinfo -dbtype gnomad_exome -buildver ${genome_version} ${pass_vcf}.avinput ${annovar_db} &> /dev/null
- 
+
 echo "Using the annovar command: ${annovar_dir}/table_annovar.pl ${pass_vcf}.avinput  ${annovar_db} -buildver ${genome_version} -remove -protocol ${annovar_pr} -operation ${annovar_op} -nastring NA"
 
- 
+
 ${annovar_dir}/table_annovar.pl ${pass_vcf}.avinput  ${annovar_db} -buildver ${genome_version} -remove -protocol ${annovar_pr} -operation ${annovar_op} -nastring NA &> /dev/null
 
 
 done
-
