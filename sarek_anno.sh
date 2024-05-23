@@ -11,7 +11,7 @@ Help()
 {
    # Display Help
    echo
-   echo "*** strelka_anno.sh ***"
+   echo "*** sarek_anno.sh ***"
    echo "Simple script to take the strelka or mutect2 vcf variant call output from nfcore/sarek, select PASS variants and those with QUAL>50 and annotate with annovar"
    echo "Syntax: scriptTemplate [-a|s|h]"
    echo "options:"
@@ -34,7 +34,7 @@ output_dir=$PWD/filtered_annotated
 input_dir=$PWD/results
 annovar_db=${annovar_dir}/humandb
 id_col=1
-caller=strelka
+caller=mutect2
 genome_version=hg38
 
 # Get the options
@@ -142,13 +142,8 @@ elif [ $caller == "mutect2" ]; then
 
 
 elif [ $caller == "intersect" ]; then
-<<<<<<< HEAD
- 
-  if [ -d "${input_dir}/variant_calling/mutect2"] && -[d "${input_dir}/variant_calling/strelka"  ]
-=======
 
   if [ -d "${input_dir}/variant_calling/mutect2" & -d "${input_dir}/variant_calling/strelka"  ]
->>>>>>> ade374df25cc123247722ae51d5a31446724bee6
    then
       echo "Found both mutect2 and strelka data. Will proceed with merge"
   fi
