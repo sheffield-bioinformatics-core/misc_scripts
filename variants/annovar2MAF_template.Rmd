@@ -41,7 +41,7 @@ for(i in 1:length(anno_files)){
   new_file <- gsub("multianno","multianno_forMAF",anno_files[i])
 
   annov %>% 
-    filter(Func.refGene == c("exonic","splicing")) %>%
+    filter(Func.refGene %in% c("exonic","splicing")) %>%
 #    filter(Gene.refGene %in% genes_of_interest) %>% 
     filter(ExAC_ALL < 0.01 | is.na(ExAC_ALL)) %>%
     write_tsv(new_file)
